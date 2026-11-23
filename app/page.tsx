@@ -14,7 +14,7 @@ export default function RankingPage() {
   // 段位の一覧
   useEffect(() => {
     getSupabase()
-      .from("dan_defs")
+      .from("dan_played") // 挑戦者のいる段位だけ(ネタバレ防止)
       .select("dan_hash, name, song_count")
       .then(({ data, error }) => {
         if (error) { setError(error.message); setLoading(false); return; }

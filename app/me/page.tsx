@@ -25,14 +25,23 @@ export default function MyPage() {
     setLoading(true);
 
     Promise.all([
-      sb.from("dan_defs").select("dan_hash, name, song_count"),
+      sb.from("dan_played").select("dan_hash, name, song_count"), // 挑戦者のいる段位だけ(ネタバレ防止)
       sb.from("dan_results").select("*").order("created_at", { ascending: false }).limit(1000),
       sb.from("dan_rankings").select("*").limit(10000),
     ]).then(([d, r, k]) => {
       const err = d.error ?? r.error ?? k.error;
       if (err) setError(err.message);
-      setDans(sortDans(d.data ?? []));
-      setResults((r.data ?? []) as ResultRow[]);
+      const mine = (r.data ?? []) as ResultRow[];
+      const list = sortDans(d.data ?? []);
+
+      // 自分の記録がある段位は、ランキング除外などで一覧に無くても出す(名前はキーの末尾から)
+      const known = new Set(list.map((x) => x.dan_hash));
+      const extra = Array.from(new Set(mine.map((x) => x.dan_hash)))
+        .filter((h) => !known.has(h))
+        .map((h) => ({ dan_hash: h, name: h.split("#").slice(2).join("#") || h, song_count: null }));
+
+      setDans(sortDans([...list, ...extra]));
+      setResults(mine);
       setRankings((k.data ?? []) as RankRow[]);
       setLoading(false);
     });
