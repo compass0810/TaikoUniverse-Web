@@ -28,6 +28,7 @@ export type RankRow = {
   total_renda: number;
   created_at: string;
   source: "play" | "import";
+  songs: SongBreakdown[];
 };
 
 export type SongBreakdown = {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
+import SongBreakdownView from "@/components/SongBreakdown";
 import { compareRank, fmtDate, sortDans, type DanInfo, type RankRow } from "@/lib/dan";
 
 export default function RankingPage() {
@@ -10,6 +11,7 @@ export default function RankingPage() {
   const [rows, setRows] = useState<RankRow[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState<string>(""); // 曲別の内訳を開いているプレイヤー(user_id)
 
   // 段位の一覧
   useEffect(() => {
@@ -29,6 +31,7 @@ export default function RankingPage() {
   useEffect(() => {
     if (!selected) return;
     setLoading(true);
+    setOpen("");
     getSupabase()
       .from("dan_rankings")
       .select("*")
@@ -68,7 +71,8 @@ export default function RankingPage() {
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={r.user_id}>
+                <Fragment key={r.user_id}>
+                <tr className="click" onClick={() => setOpen(open === r.user_id ? "" : r.user_id)}>
                   <td className="num">{i + 1}</td>
                   <td>
                     <span className="user">
@@ -83,12 +87,18 @@ export default function RankingPage() {
                   <td className="num">{r.total_fuka}</td><td className="num">{r.total_renda}</td>
                   <td>{fmtDate(r.created_at)}</td>
                 </tr>
+                {open === r.user_id ? (
+                  <tr className="sub-row">
+                    <td colSpan={9}><SongBreakdownView songs={r.songs} /></td>
+                  </tr>
+                ) : null}
+                </Fragment>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <p className="note">1人につき、その段位のベスト（合格優先 → スコア順）を1件だけ表示します。上位100件まで。「引き継ぎ」は端末内の記録を移した自己申告の記録です。</p>
+      <p className="note">1人につき、その段位のベスト（合格優先 → スコア順）を1件だけ表示します。上位100件まで。行をクリックすると曲ごとの内訳が開きます。「引き継ぎ」は端末内の記録を移した自己申告の記録です。</p>
     </>
   );
 }

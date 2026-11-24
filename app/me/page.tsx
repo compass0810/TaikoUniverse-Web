@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { loginWithDiscord, useSession } from "@/lib/useSession";
+import SongBreakdownView from "@/components/SongBreakdown";
 import { compareRank, fmtDate, fmtDuration, sortDans, type DanInfo, type RankRow, type ResultRow } from "@/lib/dan";
 
 type Best = { result: ResultRow; tries: number; passes: number; rank: number | null; players: number };
@@ -157,16 +158,7 @@ export default function MyPage() {
                   {open === r.run_id ? (
                     <tr className="sub-row">
                       <td colSpan={9}>
-                        {r.songs.length === 0 ? (
-                          <span className="m">曲ごとの内訳はありません(引き継ぎ記録)。</span>
-                        ) : (
-                          r.songs.map((s, i) => (
-                            <div key={i}>
-                              {i + 1}曲目: 良 {s.ryo}(良+ {s.ryo_plus}) / 可 {s.ka} / 不可 {s.fuka} / 連打 {s.renda}
-                              {s.completed ? "" : "(途中終了)"}
-                            </div>
-                          ))
-                        )}
+                        <SongBreakdownView songs={r.songs} />
                         <div className="note">所要時間 {fmtDuration(r.elapsed_ms)} / ポーズ {fmtDuration(r.pause_total_ms)}</div>
                       </td>
                     </tr>
